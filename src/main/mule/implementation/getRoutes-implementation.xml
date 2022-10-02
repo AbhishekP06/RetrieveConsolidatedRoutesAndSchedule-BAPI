@@ -19,26 +19,26 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<ee:transform doc:name="Transform Message" doc:id="0edc1e05-e9bd-47f2-bf1f-db7407b40eb1">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
-var LocationMapping = readUrl("classpath://json/LocationCodeMapping.json","application/json")
 output application/json
---- 
-payload map(value,index)->
+---
+payload map(value, index)->
 
 {
     "companyCode": vars.transportCompany,
     "originLocation": {
-      "locationCode": value.originLocation.locationCode,
-      "locationDesc": (LocationMapping filter($.locationCode == value.originLocation.locationCode))[0].locationDesc
+      "locationCode": value.departurelocationcode,
+      "locationDesc": "Beauna Vista Singapore"
     },
     "destinationLocation": {
-      "locationCode": value.destinationLocation.locationCode,
-      "locationDesc": (LocationMapping filter($.locationCode == value.destinationLocation.locationCode))[0].locationDesc
+      "locationCode": value.arrivallocationcode,
+      "locationDesc": "Klang Malaysia"
     }
   }
 
 ]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="fc93ad47-a1b3-446b-b800-96745e1e288a" message="Inside Cache" />
 				
 </ee:cache>
 	</sub-flow>
@@ -55,30 +55,29 @@ payload map(value,index)->
 					<ee:transform doc:name="Transform Message" doc:id="bc875168-7815-4d24-aed8-f12abb33cebc">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
-var LocationMapping = readUrl("classpath://json/LocationCodeMapping.json","application/json")
 output application/json
 ---
-payload map(value,index)->
+payload map(value, index)->
 
 {
     "companyCode": vars.transportCompany,
     "originLocation": {
-      "locationCode": value.departureLocationCode,
-      "locationDesc": (LocationMapping filter($.locationCode == value.departureLocationCode))[0].locationDesc
+      "locationCode": value.departurelocationcode,
+      "locationDesc": "Beauna Vista Singapore"
     },
     "destinationLocation": {
-      "locationCode": value.arrivalLocationCode,
-      "locationDesc": (LocationMapping filter($.locationCode == value.arrivalLocationCode))[0].locationDesc
+      "locationCode": value.arrivallocationcode,
+      "locationDesc": "Klang Malaysia"
     }
   }
 
 ]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="9d0e7f4f-1364-49fe-b9c8-9f6f64befb13" message="Inside Cache" />
 				</ee:cache>
 	</sub-flow>
 	<sub-flow name="getRoutes-implementationSub_Flow" doc:id="c0198826-29fa-4484-92e5-26f4f1e89b86" >
-		<set-variable value="Routes" doc:name="Set Variable" doc:id="cb9eaabb-efbe-427d-9e4d-4777c9e0b90b" variableName="resource"/>
 		<choice doc:name="Choice" doc:id="3ea6467a-940a-4c65-b844-22db116295b6" >
 			<when expression="#[vars.transportCompany == 'fastGo']">
 				<flow-ref doc:name="Flow Reference" doc:id="feb1f761-b898-4966-a5c7-bd0ccea28a89" name="getRoutes-CallFastGo-subFlow" />
@@ -91,15 +90,12 @@ payload map(value,index)->
 			<otherwise>
 				<scatter-gather doc:name="Scatter-Gather" doc:id="1cde9783-ac4a-4b57-9cde-51da6a1aba1f" >
 					<route >
-						<set-variable value="fastGo" doc:name="Set Variable" doc:id="5ad0c855-4c34-4b46-b9c0-8af98a4bf1d9" variableName="transportCompany"/>
 						<flow-ref doc:name="Flow Reference" doc:id="db766211-6c65-4de6-b608-904f5c5d3f0d" name="getRoutes-CallFastGo-subFlow"/>
 					</route>
 					<route >
-						<set-variable value="travelOnTip" doc:name="Set Variable" doc:id="9aa6b6bc-e45f-42dd-81f9-8d15ed3526a6" variableName="transportCompany"/>
 						<flow-ref doc:name="Flow Reference" doc:id="2c7d2594-dc23-41d7-8f2f-e27aaf1c5c46" name="getRoutes-CallTravelOnTip-subFlow"/>
 					</route>
 				</scatter-gather>
-				<set-payload value="#[%dw 2.0 &#10;output appication/json&#10;--- &#10;(payload.'0'.payload default [])  ++ (payload.'1'.payload default [])]" doc:name="Set Payload" doc:id="870f0abc-89e3-49fa-b9e2-37ee982331d7" />
 			</otherwise>
 		</choice>
 	</sub-flow>
